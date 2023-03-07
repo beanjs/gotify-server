@@ -2,8 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/auth"
@@ -73,20 +71,21 @@ type UserAPI struct {
 // produces: [application/json]
 // security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
-//   200:
-//     description: Ok
-//     schema:
-//       type: array
-//       items:
-//         $ref: "#/definitions/User"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//
+//	200:
+//	  description: Ok
+//	  schema:
+//	    type: array
+//	    items:
+//	      $ref: "#/definitions/User"
+//	401:
+//	  description: Unauthorized
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	403:
+//	  description: Forbidden
+//	  schema:
+//	      $ref: "#/definitions/Error"
 func (a *UserAPI) GetUsers(ctx *gin.Context) {
 	users, err := a.DB.GetUsers()
 	if success := successOrAbort(ctx, 500, err); !success {
@@ -109,18 +108,19 @@ func (a *UserAPI) GetUsers(ctx *gin.Context) {
 // produces: [application/json]
 // security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/User"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//
+//	200:
+//	  description: Ok
+//	  schema:
+//	      $ref: "#/definitions/User"
+//	401:
+//	  description: Unauthorized
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	403:
+//	  description: Forbidden
+//	  schema:
+//	      $ref: "#/definitions/Error"
 func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 	user, err := a.DB.GetUserByID(auth.GetUserID(ctx))
 	if success := successOrAbort(ctx, 500, err); !success {
@@ -142,80 +142,84 @@ func (a *UserAPI) GetCurrentUser(ctx *gin.Context) {
 // produces: [application/json]
 // security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
-// - name: body
-//   in: body
-//   description: the user to add
-//   required: true
-//   schema:
+//   - name: body
+//     in: body
+//     description: the user to add
+//     required: true
+//     schema:
 //     $ref: "#/definitions/CreateUserExternal"
+//
 // responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/User"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//
+//	200:
+//	  description: Ok
+//	  schema:
+//	      $ref: "#/definitions/User"
+//	400:
+//	  description: Bad Request
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	401:
+//	  description: Unauthorized
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	403:
+//	  description: Forbidden
+//	  schema:
+//	      $ref: "#/definitions/Error"
 func (a *UserAPI) CreateUser(ctx *gin.Context) {
-	user := model.CreateUserExternal{}
-	if err := ctx.Bind(&user); err == nil {
-		internal := &model.User{
-			Name:  user.Name,
-			Admin: user.Admin,
-			Pass:  password.CreatePassword(user.Pass, a.PasswordStrength),
-		}
-		existingUser, err := a.DB.GetUserByName(internal.Name)
-		if success := successOrAbort(ctx, 500, err); !success {
-			return
-		}
+	// add bark push,only work on admin user
+	ctx.AbortWithError(400, errors.New("not supported"))
+	// user := model.CreateUserExternal{}
+	// if err := ctx.Bind(&user); err == nil {
+	// 	internal := &model.User{
+	// 		Name:  user.Name,
+	// 		Admin: user.Admin,
+	// 		Pass:  password.CreatePassword(user.Pass, a.PasswordStrength),
+	// 	}
+	// 	existingUser, err := a.DB.GetUserByName(internal.Name)
+	// 	if success := successOrAbort(ctx, 500, err); !success {
+	// 		return
+	// 	}
 
-		var requestedBy *model.User
-		uid := auth.TryGetUserID(ctx)
-		if uid != nil {
-			requestedBy, err = a.DB.GetUserByID(*uid)
-			if err != nil {
-				ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("could not get user: %s", err))
-				return
-			}
-		}
+	// 	var requestedBy *model.User
+	// 	uid := auth.TryGetUserID(ctx)
+	// 	if uid != nil {
+	// 		requestedBy, err = a.DB.GetUserByID(*uid)
+	// 		if err != nil {
+	// 			ctx.AbortWithError(http.StatusInternalServerError, fmt.Errorf("could not get user: %s", err))
+	// 			return
+	// 		}
+	// 	}
 
-		if requestedBy == nil || !requestedBy.Admin {
-			status := http.StatusUnauthorized
-			if requestedBy != nil {
-				status = http.StatusForbidden
-			}
-			if !a.Registration {
-				ctx.AbortWithError(status, errors.New("you are not allowed to access this api"))
-				return
-			}
-			if internal.Admin {
-				ctx.AbortWithError(status, errors.New("you are not allowed to create an admin user"))
-				return
-			}
-		}
+	// 	if requestedBy == nil || !requestedBy.Admin {
+	// 		status := http.StatusUnauthorized
+	// 		if requestedBy != nil {
+	// 			status = http.StatusForbidden
+	// 		}
+	// 		if !a.Registration {
+	// 			ctx.AbortWithError(status, errors.New("you are not allowed to access this api"))
+	// 			return
+	// 		}
+	// 		if internal.Admin {
+	// 			ctx.AbortWithError(status, errors.New("you are not allowed to create an admin user"))
+	// 			return
+	// 		}
+	// 	}
 
-		if existingUser == nil {
-			if success := successOrAbort(ctx, 500, a.DB.CreateUser(internal)); !success {
-				return
-			}
-			if err := a.UserChangeNotifier.fireUserAdded(internal.ID); err != nil {
-				ctx.AbortWithError(500, err)
-				return
-			}
-			ctx.JSON(200, toExternalUser(internal))
-		} else {
-			ctx.AbortWithError(400, errors.New("username already exists"))
-		}
-	}
+	// 	if existingUser == nil {
+	// 		if success := successOrAbort(ctx, 500, a.DB.CreateUser(internal)); !success {
+	// 			return
+	// 		}
+	// 		if err := a.UserChangeNotifier.fireUserAdded(internal.ID); err != nil {
+	// 			ctx.AbortWithError(500, err)
+	// 			return
+	// 		}
+	// 		ctx.JSON(200, toExternalUser(internal))
+	// 	} else {
+	// 		ctx.AbortWithError(400, errors.New("username already exists"))
+	// 	}
+	// }
 }
 
 // GetUserByID returns the user by id
@@ -228,33 +232,35 @@ func (a *UserAPI) CreateUser(ctx *gin.Context) {
 // produces: [application/json]
 // security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
-// - name: id
-//   in: path
-//   description: the user id
-//   required: true
-//   type: integer
-//   format: int64
+//   - name: id
+//     in: path
+//     description: the user id
+//     required: true
+//     type: integer
+//     format: int64
+//
 // responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/User"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
+//
+//	200:
+//	  description: Ok
+//	  schema:
+//	      $ref: "#/definitions/User"
+//	400:
+//	  description: Bad Request
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	401:
+//	  description: Unauthorized
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	403:
+//	  description: Forbidden
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	404:
+//	  description: Not Found
+//	  schema:
+//	      $ref: "#/definitions/Error"
 func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		user, err := a.DB.GetUserByID(id)
@@ -278,31 +284,33 @@ func (a *UserAPI) GetUserByID(ctx *gin.Context) {
 // produces: [application/json]
 // security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
-// - name: id
-//   in: path
-//   description: the user id
-//   required: true
-//   type: integer
-//   format: int64
+//   - name: id
+//     in: path
+//     description: the user id
+//     required: true
+//     type: integer
+//     format: int64
+//
 // responses:
-//   200:
-//     description: Ok
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
+//
+//	200:
+//	  description: Ok
+//	400:
+//	  description: Bad Request
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	401:
+//	  description: Unauthorized
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	403:
+//	  description: Forbidden
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	404:
+//	  description: Not Found
+//	  schema:
+//	      $ref: "#/definitions/Error"
 func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		user, err := a.DB.GetUserByID(id)
@@ -339,27 +347,29 @@ func (a *UserAPI) DeleteUserByID(ctx *gin.Context) {
 // produces: [application/json]
 // security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
-// - name: body
-//   in: body
-//   description: the user
-//   required: true
-//   schema:
+//   - name: body
+//     in: body
+//     description: the user
+//     required: true
+//     schema:
 //     $ref: "#/definitions/UserPass"
+//
 // responses:
-//   200:
-//     description: Ok
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
+//
+//	200:
+//	  description: Ok
+//	400:
+//	  description: Bad Request
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	401:
+//	  description: Unauthorized
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	403:
+//	  description: Forbidden
+//	  schema:
+//	      $ref: "#/definitions/Error"
 func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 	pw := model.UserExternalPass{}
 	if err := ctx.Bind(&pw); err == nil {
@@ -382,39 +392,41 @@ func (a *UserAPI) ChangePassword(ctx *gin.Context) {
 // produces: [application/json]
 // security: [clientTokenAuthorizationHeader: [], clientTokenHeader: [], clientTokenQuery: [], basicAuth: []]
 // parameters:
-// - name: id
-//   in: path
-//   description: the user id
-//   required: true
-//   type: integer
-//   format: int64
-// - name: body
-//   in: body
-//   description: the updated user
-//   required: true
-//   schema:
+//   - name: id
+//     in: path
+//     description: the user id
+//     required: true
+//     type: integer
+//     format: int64
+//   - name: body
+//     in: body
+//     description: the updated user
+//     required: true
+//     schema:
 //     $ref: "#/definitions/UpdateUserExternal"
+//
 // responses:
-//   200:
-//     description: Ok
-//     schema:
-//         $ref: "#/definitions/User"
-//   400:
-//     description: Bad Request
-//     schema:
-//         $ref: "#/definitions/Error"
-//   401:
-//     description: Unauthorized
-//     schema:
-//         $ref: "#/definitions/Error"
-//   403:
-//     description: Forbidden
-//     schema:
-//         $ref: "#/definitions/Error"
-//   404:
-//     description: Not Found
-//     schema:
-//         $ref: "#/definitions/Error"
+//
+//	200:
+//	  description: Ok
+//	  schema:
+//	      $ref: "#/definitions/User"
+//	400:
+//	  description: Bad Request
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	401:
+//	  description: Unauthorized
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	403:
+//	  description: Forbidden
+//	  schema:
+//	      $ref: "#/definitions/Error"
+//	404:
+//	  description: Not Found
+//	  schema:
+//	      $ref: "#/definitions/Error"
 func (a *UserAPI) UpdateUserByID(ctx *gin.Context) {
 	withID(ctx, "id", func(id uint) {
 		var user *model.UpdateUserExternal
