@@ -45,6 +45,8 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 	userChangeNotifier := new(api.UserChangeNotifier)
 	userHandler := api.UserAPI{DB: db, PasswordStrength: conf.PassStrength, UserChangeNotifier: userChangeNotifier, Registration: conf.Registration}
 
+	barkHandler := api.BarkAPI{DB: db}
+
 	pluginManager, err := plugin.NewManager(db, conf.PluginsDir, g.Group("/plugin/:id/custom/"), streamHandler)
 	if err != nil {
 		panic(err)
@@ -170,6 +172,11 @@ func Create(db *database.GormDatabase, vInfo *model.VersionInfo, conf *config.Co
 
 		authAdmin.POST("/:id", userHandler.UpdateUserByID)
 	}
+
+	// bark route
+	g.GET("ping", barkHandler.Ping)
+	g.GET("register", barkHandler.Register)
+
 	return g, streamHandler.Close
 }
 
