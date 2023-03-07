@@ -42,7 +42,7 @@ We wanted a simple server for sending and receiving messages (in real time per W
 -   Web-UI -> [./ui](ui)
 -   CLI for sending messages -> [gotify/cli](https://github.com/gotify/cli)
 -   Android-App -> [gotify/android](https://github.com/gotify/android)
--   IOS-App -> [Bark](https://github.com/Finb/Bark)
+-   IOS-App -> [Bark](https://github.com/Finb/Bark)(thanks for bark project)
 
 [<img src="https://play.google.com/intl/en_gb/badges/images/generic/en_badge_web_generic.png" alt="Get it on Google Play" width="150" />][playstore]
 [<img src="https://f-droid.org/badge/get-it-on.png" alt="Get it on F-Droid" width="150"/>][fdroid]
