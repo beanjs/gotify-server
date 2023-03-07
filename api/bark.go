@@ -3,11 +3,11 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/gotify/server/v2/model"
-	"github.com/lithammer/shortuuid/v3"
 )
 
 type BarkDatabase interface {
-	CreateBark(bark *model.Bark) error
+	FindBarkByToken(token string) (*model.Bark, error)
+	DeleteByKey(key string) error
 }
 
 type BarkAPI struct {
@@ -41,22 +41,25 @@ func (a *BarkAPI) Ping(ctx *gin.Context) {
 }
 
 func (a *BarkAPI) Register(ctx *gin.Context) {
-	key := shortuuid.New()
+	key, _ := ctx.GetQuery("key")
 	token, _ := ctx.GetQuery("devicetoken")
 
-	model := &model.Bark{
-		Key:   key,
-		Token: token,
+	if token == "deleted" {
+		a.DB.DeleteByKey(key)
+		ctx.JSON(200, NewReply(nil))
+
+		return
 	}
 
-	if success := successOrAbort(ctx, 500, a.DB.CreateBark(model)); !success {
+	bark, err := a.DB.FindBarkByToken(token)
+	if success := successOrAbort(ctx, 500, err); !success {
 		return
 	}
 
 	ctx.JSON(200, NewReply(map[string]string{
-		// compatible with old resp
-		"key":          key,
-		"device_key":   key,
-		"device_token": token,
+		"key":          bark.Key,
+		"device_key":   bark.Key,
+		"device_token": bark.Token,
 	}))
+
 }

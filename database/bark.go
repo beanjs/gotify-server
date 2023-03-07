@@ -3,15 +3,23 @@ package database
 import (
 	"github.com/gotify/server/v2/model"
 	"github.com/jinzhu/gorm"
+	"github.com/lithammer/shortuuid/v3"
 )
 
-func (d *GormDatabase) CreateBark(bark *model.Bark) error {
-	e := new(model.Bark)
-	err := d.DB.Where("token = ?", bark.Token).Find(e).Error
+func (d *GormDatabase) FindBarkByToken(token string) (*model.Bark, error) {
+	bark := new(model.Bark)
+	err := d.DB.Where("token = ?", token).Find(bark).Error
 	if err == gorm.ErrRecordNotFound {
-		return d.DB.Create(bark).Error
+		bark.Key = shortuuid.New()
+		bark.Token = token
+
+		return bark, d.DB.Create(bark).Error
 	}
-	return nil
+	return bark, nil
+}
+
+func (d *GormDatabase) DeleteByKey(key string) error {
+	return d.DB.Where("key = ?", key).Delete(&model.Bark{}).Error
 }
 
 func (d *GormDatabase) GetBarks() ([]*model.Bark, error) {

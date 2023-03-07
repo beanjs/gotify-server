@@ -399,8 +399,9 @@ func (a *MessageAPI) CreateMessage(ctx *gin.Context) {
 		}
 
 		barkMessage := apns.PushMessage{
-			Title: msgInternal.Title,
-			Body:  msgInternal.Message,
+			Title:    msgInternal.Title,
+			Body:     msgInternal.Message,
+			Category: application.Name,
 		}
 
 		for _, bark := range barks {

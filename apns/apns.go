@@ -20,6 +20,7 @@ type PushMessage struct {
 	DeviceToken string
 	Title       string
 	Body        string
+	Category    string
 	// ios notification sound(system sound please refer to http://iphonedevwiki.net/index.php/AudioServices)
 	ExtParams map[string]interface{}
 }
@@ -76,9 +77,8 @@ func init() {
 func Push(msg *PushMessage) error {
 	pl := payload.NewPayload().
 		AlertTitle(msg.Title).
-		AlertBody(msg.Body)
-		// Sound(msg.Sound).
-		// Category(msg.Category)
+		AlertBody(msg.Body).
+		Category(msg.Category)
 
 	group, exist := msg.ExtParams["group"]
 	if exist {
